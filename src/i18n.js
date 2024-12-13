@@ -1,15 +1,15 @@
 import i18n from 'i18next'
-import ICU from 'i18next-icu'
-import Backend from 'i18next-chained-backend'
-import LocalStorageBackend from 'i18next-localstorage-backend'
-import HttpBackend from 'i18next-http-backend'
 import LanguageDetector from 'i18next-browser-languagedetector'
+import Backend from 'i18next-chained-backend'
+import HttpBackend from 'i18next-http-backend'
+import ICU from 'i18next-icu'
+import LocalStorageBackend from 'i18next-localstorage-backend'
 import { version } from '../package.json'
-
 import locales from './lib/languages.json'
+
 export const localesList = Object.values(locales)
 
-i18n
+await i18n
   .use(ICU)
   .use(Backend)
   .use(LanguageDetector)
@@ -22,16 +22,21 @@ i18n
       backendOptions: [
         { // LocalStorageBackend
           defaultVersion: version,
-          expirationTime: (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') ? 1 : 7 * 24 * 60 * 60 * 1000
+          expirationTime: (!import.meta.env.NODE_ENV || import.meta.env.NODE_ENV === 'development') ? 1 : 7 * 24 * 60 * 60 * 1000
         },
         { // HttpBackend
           // ensure a relative path is used to look up the locales, so it works when loaded from /ipfs/<cid>
-          loadPath: 'locales/{{lng}}/{{ns}}.json'
+          loadPath: (lngs, namespaces) => {
+            const lang = lngs[0]
+            const ns = namespaces[0]
+
+            return `locales/${lang}/${ns}.json`
+          }
         }
       ]
     },
-    ns: ['app', 'welcome', 'status', 'files', 'explore', 'peers', 'settings', 'notify'],
-    defaultNS: 'app',
+    ns: ['app', 'explore'],
+    defaultNS: 'explore',
     fallbackNS: 'app',
     fallbackLng: {
       'zh-Hans': ['zh-CN', 'en'],
@@ -39,7 +44,7 @@ i18n
       zh: ['zh-CN', 'en'],
       default: ['en']
     },
-    debug: process.env.DEBUG,
+    debug: import.meta.env.DEBUG,
     // react i18next special options (optional)
     react: {
       wait: true,
